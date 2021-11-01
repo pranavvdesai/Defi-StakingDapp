@@ -9,9 +9,14 @@ contract TokenFarm{
     DappToken public dappToken;
     DaiToken public daiToken;
 
-    mapping(address => uint) public stakingBalance
+    address[] public stakers;
 
+    mapping(address => uint) public stakingBalance;
+    mapping(address => bool) public hasStaked;
+    mapping(address => uint) public isStaking;
 
+    // type --> smart contract name
+    // pass dapptoken and daitoken address
     constructor(DappToken _dappToken, DaiToken _daiToken) public {
         dappToken = _dappToken;
         daiToken = _daiToken;
@@ -26,6 +31,15 @@ contract TokenFarm{
     
         // add to staking balance
         stakingBalance[msg.sender] = stakingBalance[msg.sender] + _amount;
+    
+        // stakers.push(msg.sender);
+        //disallow multiple entries
+        if(!hasStaked[msg.sender]){
+            stakers.push[msg.sender];
+            isStaking[msg.sender] = true;
+            hasStaked[msg.sender] = true;
+        }
+
     
     }
     // withdraw
