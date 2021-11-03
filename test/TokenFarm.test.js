@@ -42,10 +42,39 @@ contract('TokenFarm',(/*accounts*/[owner, investor])=>{
             const name = await tokenFarm.name()
             assert.equal(name ,"TokenFarm");
         })
-    });
+   
         it('contract has tokens', async()=>{
             const balance = await dappToken.balanceOf(tokenFarm.address)
             assert.equal(balance.toString(), tokens('10000'));
         })
-    
+    });
+
+    describe('Farming Tokens', async () => {
+        it('rewards investors for staking mDai tokens', async()=>{
+
+            //check investor balance before staking
+            const investorBalanceBefore = await daiToken.balanceOf(investor);
+            assert.equal(investorBalanceBefore.toString(), tokens('1000'), 'investor mock DAI wallet balance shld be correct before staking');
+            
+            // stake mock DAI tokens
+            await daiToken.approve(tokenFarm.address, tokens('1000'), {from: investor})
+            await tokenFarm.stake(tokens('1000'), {from: investor})
+
+            // check investor balance after staking
+            const investorBalanceAfter = await daiToken.balanceOf(investor);
+            assert.equal(investorBalanceAfter.toString(), tokens('0'), 'investor mock DAI wallet balance shld be correct after staking');
+
+            // check token farm balance after staking
+            const tokenFarmBalance = await daiToken.balanceOf(tokenFarm.address);
+            assert.equal(tokenFarmBalance.toString(), tokens('1000'), 'token farm mock DAI wallet balance shld be correct after staking');
+           
+            // check stakingBalance
+            const stakingBalance = await tokenFarm.stakingBalance(investor);
+            assert.equal(stakingBalance.toString(), tokens('1000'), 'investor staking balance shld be correct after staking');
+
+            // check current status
+            const currentStatus = await tokenFarm.isStaking(investor);
+            assert.equal(currentStatus.toString(), 'true', 'current status shld be correct after staking');
+        })
+    });
 })
