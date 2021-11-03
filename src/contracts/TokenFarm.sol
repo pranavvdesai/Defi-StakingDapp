@@ -8,6 +8,7 @@ contract TokenFarm {
     string public symbol = "TF";
     DappToken public dappToken;
     DaiToken public daiToken;
+    address public owner;
 
     address[] public stakers;
 
@@ -20,10 +21,14 @@ contract TokenFarm {
     constructor(DappToken _dappToken, DaiToken _daiToken) public {
         dappToken = _dappToken;
         daiToken = _daiToken;
+        owner = msg.sender;
     }
 
     // Deposit
     function stake(uint256 _amount) public payable {
+        // require amount to be greater than 0
+        require(_amount > 0,"Amount must be greater than 0");
+
         // transfer from investor to this contract
         daiToken.transferFrom(msg.sender, address(this), _amount);
 
@@ -45,4 +50,15 @@ contract TokenFarm {
     }
 
     // issue tokens
+    function issue() public {
+        // only owner can call this function
+        require(msg.sender == owner, "Only owner can issue tokens");
+        for (uint i = 0; i < stakers.length; i++) {
+            address staker = stakers[i];
+            uint Balance = stakingBalance[staker];
+            if(Balance>0){
+                dappToken.transfer(staker, Balance);
+            }
+        }
+     }
 }
