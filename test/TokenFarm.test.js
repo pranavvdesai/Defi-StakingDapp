@@ -75,6 +75,20 @@ contract('TokenFarm',(/*accounts*/[owner, investor])=>{
             // check current status
             const currentStatus = await tokenFarm.isStaking(investor);
             assert.equal(currentStatus.toString(), 'true', 'current status shld be correct after staking');
+        
+            await tokenFarm.issue({from: owner})
+
+            // ensure that only owner can issue tokens
+            await tokenFarm.issue({from: investor}).should.be.rejectedWith('revert');
+
+            // check balance after issuing
+            const investorBalanceAfterissue = await dappToken.balanceOf(investor);
+            assert.equal(investorBalanceAfterissue.toString(), tokens('1000'), 'token farm dapp wallet balance shld be correct after issuing');
+
+            // check token farm balance after issuing
+            const tokenFarmBalanceAfterissue = await dappToken.balanceOf(tokenFarm.address);
+            assert.equal(tokenFarmBalanceAfterissue.toString(), tokens('0'), 'token farm dapp wallet balance shld be correct after issuing');
+        
         })
     });
 })
