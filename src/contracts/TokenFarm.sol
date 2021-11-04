@@ -45,8 +45,31 @@ contract TokenFarm {
     }
 
     // withdraw
-    function unstake(uint256 _amount) public {
-        dappToken.transfer(msg.sender, _amount);
+    function unstake() public {
+        // fetch the staking balance
+        uint balance = stakingBalance[msg.sender];
+
+        // require amount to be greater than 0
+        require(balance > 0,"Amount must be greater than 0");
+
+        // transfer mock dais to investor
+        daiToken.transfer(msg.sender,balance);
+        
+        // reset staking balance
+        stakingBalance[msg.sender] = 0;
+ 
+        // update staking status
+        isStaking[msg.sender] = false;
+
+        // remove from stakers
+        // for (uint i = 0; i < stakers.length; i++) {
+        //     if (stakers[i] == msg.sender) {
+        //         stakers.remove(i);
+        //     }
+        // }
+        
+        // transfer dapp token to investor
+        // dappToken.transferFrom(address(this), msg.sender, balance);
     }
 
     // issue tokens
