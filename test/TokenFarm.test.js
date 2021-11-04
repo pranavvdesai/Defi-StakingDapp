@@ -87,8 +87,30 @@ contract('TokenFarm',(/*accounts*/[owner, investor])=>{
 
             // check token farm balance after issuing
             const tokenFarmBalanceAfterissue = await dappToken.balanceOf(tokenFarm.address);
-            assert.equal(tokenFarmBalanceAfterissue.toString(), tokens('0'), 'token farm dapp wallet balance shld be correct after issuing');
+            assert.equal(tokenFarmBalanceAfterissue.toString(), tokens('9000'), 'token farm dapp wallet balance shld be correct after issuing');
         
+            // unstake tokens
+            await tokenFarm.unstake({from: investor})
+
+            // check investor balance after unstaking
+            const investorBalanceAfterunstake = await daiToken.balanceOf(investor);
+            assert.equal(investorBalanceAfterunstake.toString(), tokens('1000'), 'investor mock DAI wallet balance shld be correct after unstaking');
+
+            // check token farm balance after unstaking
+            const tokenFarmBalanceAfterunstake = await daiToken.balanceOf(tokenFarm.address);
+            assert.equal(tokenFarmBalanceAfterunstake.toString(), tokens('0'), 'token farm mock DAI wallet balance shld be correct after unstaking');
+
+            // check stakingBalance
+            const stakingBalanceAfterunstake = await tokenFarm.stakingBalance(investor);
+            assert.equal(stakingBalanceAfterunstake.toString(), tokens('0'), 'investor staking balance shld be correct after unstaking');
+
+            // // check dapp token balance after unstaking
+            const dappTokenBalanceAfterunstake = await dappToken.balanceOf(investor);
+            assert.equal(dappTokenBalanceAfterunstake.toString(), tokens('1000'), 'investor dapp token wallet balance shld be correct after unstaking');
+
+
+
+
         })
     });
 })
