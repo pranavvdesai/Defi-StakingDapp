@@ -2,8 +2,10 @@ import React, { Component } from "react";
 import Navbar from "./Navbar";
 import DaiToken from '../abis/DaiToken.json'
 import DappToken from '../abis/DappToken.json'
+import TokenFarm from '../abis/TokenFarm.json'
 import "./App.css";
 import Web3 from "web3";
+import Main from "./main";
 
 class App extends Component {
   async componentWillMount() {
@@ -23,6 +25,22 @@ class App extends Component {
         "Non-Ethereum browser detected. You should consider trying MetaMask!"
       );
     }
+  }
+
+  stakeTokens = (amount) => {
+    this.setState({ loading: true })
+    this.state.daiToken.methods.approve(this.state.tokenFarm._address, amount).send({ from: this.state.account }).on('transactionHash', (hash) => {
+      this.state.tokenFarm.methods.stake(amount).send({ from: this.state.account }).on('transactionHash', (hash) => {
+        this.setState({ loading: false })
+      })
+    })
+  }
+
+  unstakeTokens = (amount) => {
+    this.setState({ loading: true })
+    this.state.tokenFarm.methods.unstake().send({ from: this.state.account }).on('transactionHash', (hash) => {
+      this.setState({ loading: false })
+    })
   }
 
   async loadBlockchainData() {
@@ -61,6 +79,19 @@ class App extends Component {
       window.alert("DappToken contract not deployed to detected network.");
     }
 
+    // load tokenfarm
+    const tokenFarmData = TokenFarm.networks[networkId];
+    if(tokenFarmData){
+      const tokenFarm = new web3.eth.Contract(TokenFarm.abi, tokenFarmData.address);
+      this.setState({ tokenFarm });
+      console.log(tokenFarm);
+      let stakingBalance = await tokenFarm.methods.stakingBalance(this.state.account).call();
+      this.setState({ stakingBalance: stakingBalance.toString() }); 
+      console.log({stakingBalance: stakingBalance});
+    } else {
+      window.alert("DappToken contract not deployed to detected network.");
+    }
+    this.setState({loading:false})
     // const networkContract = networkData.contractAddress;
     // const networkContractInstance = new web3.eth.Contract(
     //   NetworkContract.abi,
@@ -90,6 +121,19 @@ class App extends Component {
   }
 
   render() {
+    let content 
+    if(this.state.loading){
+      content = <div className="loader">Loading...</div>
+    } else {
+      content  = <Main
+      daiTokenBalance={this.state.daiTokenBalance}
+      dappTokenBalance={this.state.dappTokenBalance}
+      stakingBalance={this.state.stakingBalance}
+      stakeTokens={this.stakeTokens}
+      unstakeTokens= {this.unstakeTokens}
+
+      />
+    }
     return (
       <div>
         <Navbar account={this.state.account} />
@@ -101,7 +145,10 @@ class App extends Component {
               style={{ maxWidth: "600px" }}
             >
               <div className="content mr-auto ml-auto">
-                <h1>Hello, World!</h1>
+                
+                
+                
+                {content}
               </div>
             </main>
           </div>
